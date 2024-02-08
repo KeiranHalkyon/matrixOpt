@@ -66,7 +66,7 @@ class EncodedMatrix{
             finalized=false;
         }
 
-        bool encode(){
+        bool encode8(){
             int rown=0, noz, noo, currLength;
             std::string currentRow;
             int *diffs; // store differences for each indices within a row
@@ -183,21 +183,23 @@ class EncodedMatrix{
             return true;
         }
 
-        bool decode(int row){
+        bool decode8(int row){
             std::string rowFileName = filename.substr(0,filename.length()-4) + "\\" + std::to_string(row/1000) + "\\" + std::to_string(row%1000);
-            //std::ifstream rowEncF(rowFileName);
-            //skipBOM(rowEncF);
+            std::ifstream rowEncF(rowFileName, std::ios::binary);
+            skipBOM(rowEncF);
 
             //std::string encodedRow;
             //std::getline(rowEncF,encodedRow,'\0');
 
+            /*
             FILE *rowEncFile = fopen(rowFileName.c_str(), "rb");
             if( rowEncFile == nullptr){
                 perror("Error opening file");
                 return 0;
             }
+            */
 
-            skipBOMfp(rowEncFile);
+            //skipBOMfp(rowEncFile);
 
             int byteNo = 0;
             int prevSum = -1;
@@ -226,7 +228,7 @@ class EncodedMatrix{
             }
             */
 
-            for(size_t i = 0;(currCh = fgetc(rowEncFile)) != EOF;i++){
+            for(size_t i = 0;rowEncF.get(currCh);i++){
                 buffer |= (currCh & 0x7f) << (7*byteNo);
                 if((currCh & 0x80) == 0){
                     int newValue = prevSum += buffer;
@@ -240,8 +242,8 @@ class EncodedMatrix{
 
             indices.shrink_to_fit();
             //std::cout << "\n" << indices.back() << std::endl;
-            //for(int i=0;i<100;i++)
-            //        std::cout << indices.pop_back() << " ";
+            for(int i=0;i<100;i++)
+                    std::cout << indices[i] << " ";
             return true;
         }
 };
