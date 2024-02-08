@@ -32,12 +32,6 @@ void skipBOMfp(FILE *fp){
     fseek(fp, 0, SEEK_SET);
 }
 
-void printDiffs(int *arr, int length){
-    for(int i=0;i<length;i++)
-        std::cout << arr[i] << " ";
-    std::cout<<std::endl;
-}
-
 class EncodedMatrix{
     public:
         std::string filename;
@@ -183,6 +177,113 @@ class EncodedMatrix{
             return true;
         }
 
+        bool encode4(){
+            int rown=0, noz, noo, currLength;
+            std::string currentRow;
+            int *diffs; // store differences for each indices within a row
+            std::string outerDir = filename.substr(0,filename.length()-4);
+            std::filesystem::create_directory(outerDir);
+            while(rown<rows){
+                std::getline(fileIterator,currentRow);
+                noz = boost::count(currentRow,'0');
+                noo=cols-noz;
+                char chToCheck;
+                //make a check for noo or noz == 0
+                if(noo<=noz){
+                    chToCheck = '1';
+                    currLength = noo;
+                }
+                else{
+                    chToCheck = '0';
+                    currLength = noz;
+                }
+
+                //count no. of 1's
+                isZero[rown] = false;
+                diffs = new int[currLength];
+                int prev = 0, diffIndex=0;
+
+                //check for consistency of counting b/w noo/noz and diffs[] size
+
+                //cannot send zero to __builtin_clz()
+                //so store all indices as +1
+                //std::cout << "0th diffs"<<std::endl;
+                while(true){
+                    int currIndex = currentRow.find(chToCheck,prev)+1;
+                    //if(diffIndex<100) std::cout<<currIndex-1<<" ";
+                    if(currIndex == 0) break;
+                    diffs[diffIndex++] = currIndex - prev;
+                    prev = currIndex;
+                }
+                
+                std::cout << prev << std::endl;
+                /*
+                std::cout << rown << "th diffs" << std::endl;
+                for(int i=0;i<100;i++)
+                    std::cout << diffs[i] << " ";
+                */
+
+                currentRow.clear();
+                //storing encoded data in currentRow
+                // for now, considering sizeof(int) = 4
+                diffIndex = 0;
+
+                char currCh = '\0';
+                bool currChUsed = false;
+                unsigned mask = 0x7;
+                while(diffIndex<currLength){
+                    unsigned int now = diffs[diffIndex];
+                    //formula = ((size taken by int in bits) - no. of leading zero)/3
+                    int noOfBytes = ceil((sizeof(int)*8 - __builtin_clz(now))*1.0/3);
+
+                    //std::cout<<"hi"<<now<<" "<<noOfBytes<<std::endl;
+                    
+                    //little endian
+                    while(noOfBytes-->0){
+                        currCh |= now & mask ;
+                        now >>= 3;
+                        if(noOfBytes)
+                            currCh |= 0x8;
+                        if(currChUsed){
+                            currentRow+=currCh;
+                            currCh = '\0';
+                            currChUsed = false;
+                        }
+                        else{
+                            currCh <<= 4;
+                            currChUsed = true;
+                        }
+                    }
+
+                    diffIndex++;
+                    //std::cin.ignore();
+                }
+
+                //if the last byte was only filled till the first half, manually push it into string
+                if(currChUsed)
+                    currentRow += currCh;
+
+                //
+                // now either write to file, or add to memory
+                //
+                std::string innerDir = outerDir + "\\" + std::to_string(rown/1000),
+                    innerFile = innerDir+"\\"+std::to_string(rown%1000);
+                std::cout << innerDir << " " << innerFile << std::endl;
+                std::filesystem::create_directory(innerDir);
+                std::ofstream outfile(innerFile,std::ios::binary | std::ios::out);
+
+                outfile << currentRow;
+                outfile.close();
+
+                //bookkeeping tasks to reduce memory footprint
+                currentRow = "";
+                currentRow.shrink_to_fit();
+                delete[] diffs;
+                rown++;
+            }
+            return true;
+        }
+
         bool decode8(int row){
             std::string rowFileName = filename.substr(0,filename.length()-4) + "\\" + std::to_string(row/1000) + "\\" + std::to_string(row%1000);
             std::ifstream rowEncF(rowFileName, std::ios::binary);
@@ -245,5 +346,61 @@ class EncodedMatrix{
             for(int i=0;i<100;i++)
                     std::cout << indices[i] << " ";
             return true;
+        }
+    
+        const std::vector<unsigned int> decode4(int row){
+            std::string rowFileName = filename.substr(0,filename.length()-4) + "\\" + std::to_string(row/1000) + "\\" + std::to_string(row%1000);
+            std::ifstream rowEncF(rowFileName, std::ios::binary);
+
+            int bit4No = 0;
+            int prevSum = -1;
+            unsigned int buffer = 0;
+            std::vector<unsigned int> indices;
+
+            //store current character/buffer
+            char currCh;
+            //whether currCh has been used before
+            bool currChUsed = true;
+
+            size_t i=0;
+            while(true){
+                unsigned int mask, currValue;
+                if(currChUsed){
+                    //if EOF has triggered
+                    if(!rowEncF.get(currCh))
+                        break;
+                    currChUsed = false;
+                    mask = 0x70;
+                    currValue = (currCh & mask) >> 4;
+                }
+                else{
+                    currChUsed = true;
+                    mask = 0x7;
+                    currValue = (currCh & mask);
+                }
+
+                buffer |= currValue << (3*bit4No);
+
+                if((!currChUsed && ((currCh & 0x80) == 0)) || (currChUsed && ((currCh & 0x8) == 0))){
+                    //detect last empty half i.e. 0010 0000, where the last half was unfilled
+                    if(buffer == 0)
+                        continue;
+                    int newValue = prevSum += buffer;
+                    indices.push_back(newValue);
+                    //if (i<200) std::cout << newValue << " ";
+                    buffer = bit4No = 0;
+                    
+                }
+                else bit4No++;
+            }
+
+
+            indices.shrink_to_fit();
+            //std::cout << "\n" << indices.back() << std::endl;
+            /*
+            for(int i=0;i<100;i++)
+                    std::cout << indices[i] << " ";
+            */
+            return indices;
         }
 };
