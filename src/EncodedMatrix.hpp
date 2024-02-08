@@ -6,6 +6,7 @@
 #include<algorithm>
 #include<vector>
 #include<filesystem>
+#include<numeric>
 //#include<boost/dynamic_bitset.hpp>
 #include<boost/range/algorithm/count.hpp>
 
@@ -105,8 +106,10 @@ class EncodedMatrix{
                     std::cout << diffs[i] << " ";
                 */
 
-                currentRow.clear();
                 //storing encoded data in currentRow
+                currentRow.clear();
+                //add 1st character as the value whose indices are encoded i.e, either 1 or 0
+                currentRow +=chToCheck;
                 // for now, considering sizeof(int) = 4
                 diffIndex = 0;
                 while(diffIndex<currLength){
@@ -159,8 +162,8 @@ class EncodedMatrix{
                 //
                 // now either write to file, or add to memory
                 //
-                std::string innerDir = outerDir + "\\" + std::to_string(rown/1000),
-                    innerFile = innerDir+"\\"+std::to_string(rown%1000);
+                std::string innerDir = outerDir + "/" + std::to_string(rown/1000),
+                    innerFile = innerDir+"/"+std::to_string(rown%1000);
                 std::cout << innerDir << " " << innerFile << std::endl;
                 std::filesystem::create_directory(innerDir);
                 std::ofstream outfile(innerFile,std::ios::binary | std::ios::out);
@@ -181,11 +184,12 @@ class EncodedMatrix{
             int rown=0, noz, noo, currLength;
             std::string currentRow;
             int *diffs; // store differences for each indices within a row
-            std::string outerDir = filename.substr(0,filename.length()-4);
+            std::string outerDir = filename.substr(0,filename.length()-4) + "ENCODED";
             std::filesystem::create_directory(outerDir);
             while(rown<rows){
                 std::getline(fileIterator,currentRow);
                 noz = boost::count(currentRow,'0');
+                std::cout<<noz<<std::endl;
                 noo=cols-noz;
                 char chToCheck;
                 //make a check for noo or noz == 0
@@ -216,15 +220,17 @@ class EncodedMatrix{
                     prev = currIndex;
                 }
                 
-                std::cout << prev << std::endl;
+                //std::cout << prev << std::endl;
                 /*
                 std::cout << rown << "th diffs" << std::endl;
                 for(int i=0;i<100;i++)
                     std::cout << diffs[i] << " ";
                 */
 
-                currentRow.clear();
                 //storing encoded data in currentRow
+                currentRow.clear();
+                //add 1st character as the value whose indices are encoded i.e, either 1 or 0
+                currentRow +=chToCheck;
                 // for now, considering sizeof(int) = 4
                 diffIndex = 0;
 
@@ -266,9 +272,9 @@ class EncodedMatrix{
                 //
                 // now either write to file, or add to memory
                 //
-                std::string innerDir = outerDir + "\\" + std::to_string(rown/1000),
-                    innerFile = innerDir+"\\"+std::to_string(rown%1000);
-                std::cout << innerDir << " " << innerFile << std::endl;
+                std::string innerDir = outerDir + "/" + std::to_string(rown/1000),
+                    innerFile = innerDir+"/"+std::to_string(rown%1000);
+                //std::cout << innerDir << " " << innerFile << std::endl;
                 std::filesystem::create_directory(innerDir);
                 std::ofstream outfile(innerFile,std::ios::binary | std::ios::out);
 
@@ -284,8 +290,8 @@ class EncodedMatrix{
             return true;
         }
 
-        bool decode8(int row){
-            std::string rowFileName = filename.substr(0,filename.length()-4) + "\\" + std::to_string(row/1000) + "\\" + std::to_string(row%1000);
+        std::vector<unsigned int> decode8(int row){
+            std::string rowFileName = filename.substr(0,filename.length()-4) + "/" + std::to_string(row/1000) + "/" + std::to_string(row%1000);
             std::ifstream rowEncF(rowFileName, std::ios::binary);
             skipBOM(rowEncF);
 
@@ -308,7 +314,11 @@ class EncodedMatrix{
             std::vector<unsigned int> indices;
 
             //std::cout <<"Encoded string length : "<< encodedRow.length() << std::endl;
-            char currCh;
+            char currCh, encodedChar;
+
+            //retrieve 1st character, which indicates the value whose indices are encoded
+            rowEncF.get(encodedChar);
+
             //rowEncF.clear();
             //for(size_t i = 0;i<encodedRow.length();i++){
             
@@ -329,27 +339,43 @@ class EncodedMatrix{
             }
             */
 
-            for(size_t i = 0;rowEncF.get(currCh);i++){
+            while(rowEncF.get(currCh)){
                 buffer |= (currCh & 0x7f) << (7*byteNo);
                 if((currCh & 0x80) == 0){
-                    int newValue = prevSum += buffer;
-                    indices.push_back(newValue);
+                    int newValue = prevSum + buffer;
+                    if(encodedChar != '0')
+                        indices.push_back(newValue);
+                    else{
+                        for(int i = prevSum+1;i<newValue;i++)
+                            indices.push_back(i);
+                    }
+                    prevSum = newValue;
                     //if (i<200) std::cout << newValue << " ";
                     buffer = byteNo = 0;
                 }
                 else byteNo++;
             }
 
+            //detect if all values are 1
+            if(encodedChar == '0' && indices.size() == 0){
+                indices.resize(cols);
+                std::iota(std::begin(indices),std::end(indices), 0);  
+            }
+            //detect if all values are 0
+            else if(encodedChar == '1' && indices.size() == 0)
+                indices.push_back(-1);
 
             indices.shrink_to_fit();
             //std::cout << "\n" << indices.back() << std::endl;
+            /*
             for(int i=0;i<100;i++)
                     std::cout << indices[i] << " ";
-            return true;
+            */
+            return indices;
         }
     
         const std::vector<unsigned int> decode4(int row){
-            std::string rowFileName = filename.substr(0,filename.length()-4) + "\\" + std::to_string(row/1000) + "\\" + std::to_string(row%1000);
+            std::string rowFileName = filename.substr(0,filename.length()-4) + "/" + std::to_string(row/1000) + "/" + std::to_string(row%1000);
             std::ifstream rowEncF(rowFileName, std::ios::binary);
 
             int bit4No = 0;
@@ -358,7 +384,9 @@ class EncodedMatrix{
             std::vector<unsigned int> indices;
 
             //store current character/buffer
-            char currCh;
+            char currCh, encodedChar;
+            //retrieve 1st character, which indicates the value whose indices are encoded
+            rowEncF.get(encodedChar);
             //whether currCh has been used before
             bool currChUsed = true;
 
@@ -385,8 +413,14 @@ class EncodedMatrix{
                     //detect last empty half i.e. 0010 0000, where the last half was unfilled
                     if(buffer == 0)
                         continue;
-                    int newValue = prevSum += buffer;
-                    indices.push_back(newValue);
+                    int newValue = prevSum + buffer;
+                    if(!encodedChar == '0')
+                        indices.push_back(newValue);
+                    else{
+                        for(int i = prevSum+1;i<newValue;i++)
+                            indices.push_back(i);
+                    }
+                    prevSum = newValue;
                     //if (i<200) std::cout << newValue << " ";
                     buffer = bit4No = 0;
                     
@@ -394,6 +428,14 @@ class EncodedMatrix{
                 else bit4No++;
             }
 
+            //detect if all values are 1
+            if(encodedChar == '0' && indices.size() == 0){
+                indices.resize(cols);
+                std::iota(std::begin(indices),std::end(indices), 0);  
+            }
+            //detect if all values are 0
+            else if(encodedChar == '1' && indices.size() == 0)
+                indices.push_back(-1);
 
             indices.shrink_to_fit();
             //std::cout << "\n" << indices.back() << std::endl;
