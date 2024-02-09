@@ -499,7 +499,20 @@ footer {
   background-color: black;
   color: rgb(255, 255, 255)
 }
-
+.deliverable_check_output{
+  display: flex;
+  align-items: center;
+  justify-content: left;
+}
+.deliverable_check_output_para{
+  color: rgb(2, 194, 24);
+}
+.seller_details_button{
+  margin: 0rem 0rem 0rem 1rem;
+}
+.deliverable_check_output_para_2{
+  color: rgb(150, 1, 1);
+}
 
 @media screen and (max-width:480px) {
   nav{
