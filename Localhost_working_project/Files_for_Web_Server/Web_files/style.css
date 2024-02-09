@@ -480,6 +480,7 @@ footer {
 .pin_check_class_1{
   border: none;
   outline: none;
+  width: 10rem;
   padding: 0.5rem 0.5rem 0.5rem 0.5rem;
   margin: 1rem 0rem 1rem 0rem;
   border-radius: 5px;
