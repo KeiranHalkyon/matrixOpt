@@ -24,7 +24,7 @@ void handle_request(const http::request<http::string_body> &req, http::response<
     else if (req.method() == http::verb::post && req.target() == "/api/data")
     {
         res.result(http::status::created);
-        vector<unsigned int> gyb = em.decode4(stoi(req.body()));
+        vector<int> gyb = em.decode4(stoi(req.body()));
         string str = "";
         if (gyb[0] == -1)
             str = "" ;
@@ -35,7 +35,7 @@ void handle_request(const http::request<http::string_body> &req, http::response<
         }
         else
         {
-            for (unsigned int item : gyb)
+            for (int item : gyb)
             {
                 str = str + to_string(item) + ",";
             }

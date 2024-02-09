@@ -1,7 +1,7 @@
 let check = document.getElementById('check_button_pincode') ;
 check.addEventListener('click' , () =>{
     let pin_value = document.getElementById('pincode_check_id_1').value ;
-    const apiUrl = 'http://34.100.168.215:8080/api/data';
+    const apiUrl = 'http://localhost:8080/api/data';
     const dataToSend = pin_value;
 
     fetch(apiUrl, {
