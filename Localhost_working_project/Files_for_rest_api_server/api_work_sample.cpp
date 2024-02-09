@@ -3,7 +3,7 @@
 #include <boost/beast.hpp>
 #include <boost/asio.hpp>
 #include <typeinfo>
-#include "EncodedMatrix.hpp"
+#include "../../src/EncodedMatrix.hpp"
 
 using namespace std;
 namespace beast = boost::beast;
