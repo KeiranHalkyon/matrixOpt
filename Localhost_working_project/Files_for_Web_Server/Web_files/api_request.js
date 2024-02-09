@@ -1,6 +1,10 @@
 let check = document.getElementById('check_button_pincode') ;
 check.addEventListener('click' , () =>{
     let pin_value = document.getElementById('pincode_check_id_1').value ;
+    
+    let int_value = parseInt(pin_value) ;
+    if(int_value >= 100000 && int_value <= 999999){
+    
     const apiUrl = 'http://localhost:8080/api/data';
     const dataToSend = pin_value;
 
@@ -40,7 +44,10 @@ check.addEventListener('click' , () =>{
     .catch(error => {
         console.error('Error:', error);
     });
-
+    }
+    else{
+        alert("The Pincode you have entered is not Valid.") ;
+    }
 
 });
 
