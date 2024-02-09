@@ -472,6 +472,35 @@ footer {
   font-size: 14px;
 }
 
+.deliverable_check_inside{
+  display: flex;
+  align-items: center;
+  justify-content: left;
+}
+.pin_check_class_1{
+  border: none;
+  outline: none;
+  padding: 0.5rem 0.5rem 0.5rem 0.5rem;
+  margin: 1rem 0rem 1rem 0rem;
+  border-radius: 5px;
+  background-color: white;
+}
+.check_button_pincode_class_1{
+  border: none;
+  border-radius: 5px;
+  padding: 0.5rem 1rem 0.5rem 1rem;
+  margin: 1rem 0rem 1rem 1.5rem;
+  cursor: pointer;
+  background-color: white ;
+  color: black;
+  transition: 0.2s linear;
+}
+.check_button_pincode_class_1:hover{
+  background-color: black;
+  color: rgb(255, 255, 255)
+}
+
+
 @media screen and (max-width:480px) {
   nav{
     padding: 20px;
