@@ -105,7 +105,7 @@ int main()
 {
     cout << "We are inside the API code." << endl;
     net::io_context ioc{1};
-    em.rows = 10;
+    //em.rows = 10;
     em.encode4();
     
     std::string fileName = "pincode-dataset.txt";
