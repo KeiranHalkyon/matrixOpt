@@ -23,6 +23,9 @@ check.addEventListener('click' , () =>{
     })
     .then(data => {
         if(data != null){
+            let str_part = data.substring(0 , 2) ;
+            let to_integer = parseInt(str_part) ;
+            if(to_integer != -1){
             let update_info = document.getElementById('deliverable_check_output_id') ;
             update_info.innerHTML = `<p class="deliverable_check_output_para">Sellers Available for this Pincode</p>
             <a href="./seller_list.html" id="seller_link" class="seller_details_button">View Sellers</a>` ;
@@ -33,6 +36,10 @@ check.addEventListener('click' , () =>{
                // window.location.href = "seller_data.html?content=" + encodeURIComponent(data);
                alert("The List of Sellers are: " + data);
             }) ;
+        }
+        else{
+            alert("No Such Pincode Exist. Please enter a Valid Pincode.") ;
+        }
         }
         else{
             let update_info = document.getElementById('deliverable_check_output_id') ;

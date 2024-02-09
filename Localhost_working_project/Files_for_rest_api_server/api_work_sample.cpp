@@ -4,6 +4,7 @@
 #include <boost/asio.hpp>
 #include <typeinfo>
 #include "../../src/EncodedMatrix.hpp"
+//#include "hash_implement.h"
 #include <sstream>
 
 using namespace std;
@@ -13,6 +14,7 @@ namespace net = boost::asio;
 using tcp = net::ip::tcp;
 
 EncodedMatrix em("dataset(300_10000).txt");
+std::unordered_map<int, int> pincodeMap;
 
 void handle_request(const http::request<http::string_body> &req, http::response<http::string_body> &res)
 {
@@ -25,7 +27,15 @@ void handle_request(const http::request<http::string_body> &req, http::response<
     else if (req.method() == http::verb::post && req.target() == "/api/data")
     {
         res.result(http::status::created);
-        vector<int> gyb = em.decode4(stoi(req.body()));
+        
+        std::string inputPincode;
+    	//std::cout << "Enter the pincode: ";
+    	//std::cin >> inputPincode;
+    	inputPincode = req.body() ;
+    	auto it = pincodeMap.find(stoi(inputPincode));
+    	if (it != pincodeMap.end()) {
+        //std::cout << "Pincode " << inputPincode << " found at line number: " << it->second << std::endl;
+    	vector<int> gyb = em.decode4(stoi(req.body()));
         string str = "";
         if (gyb[0] == -1)
             str = "" ;
@@ -48,6 +58,36 @@ void handle_request(const http::request<http::string_body> &req, http::response<
             str = ss.str() ;
         }
         res.body() = str;
+    	} else {
+        //std::cout << "Pincode " << inputPincode << " not found." << std::endl;
+        res.body() = "-1" ;
+    	}
+        
+        
+        
+        /*vector<int> gyb = em.decode4(stoi(req.body()));
+        string str = "";
+        if (gyb[0] == -1)
+            str = "" ;
+        else if (gyb[0] == -2){
+            stringstream ss ;
+            for(int i = 0 ; i < (em.cols) ; i ++){
+                //str += to_string(i) + "," ;
+            	ss << i << "," ;
+            }
+            str = ss.str() ;
+        }
+        else
+        {
+            stringstream ss ;
+            for (int item : gyb)
+            {
+                //str = str + to_string(item) + ",";
+            	ss << item << "," ;
+            }
+            str = ss.str() ;
+        }
+        res.body() = str;*/
     }
     else
     {
@@ -64,32 +104,37 @@ void handle_request(const http::request<http::string_body> &req, http::response<
 int main()
 {
     cout << "We are inside the API code." << endl;
-    // Step 1: Create the IO context
     net::io_context ioc{1};
     em.rows = 10;
     em.encode4();
-    // Step 2: Create and bind the acceptor
+    
+    std::string fileName = "pincode-dataset.txt";
+    std::ifstream file(fileName);
+    if (!file.is_open()) {
+        std::cerr << "Error: Failed to open the file " << fileName << std::endl;
+        return 1;
+    }
+    //std::unordered_map<int, int> pincodeMap;
+    std::string line;
+    int lineNumber = 0;
+    while (std::getline(file, line)) {
+        pincodeMap[stoi(line)] = lineNumber;
+        lineNumber++;
+    }
+    file.close();
+    
     tcp::acceptor acceptor{ioc, {tcp::v4(), 8080}};
 
     while (true)
     {
-        // Step 3: Accept incoming connections
         tcp::socket socket{ioc};
         acceptor.accept(socket);
-
-        // Step 4: Read request
         beast::flat_buffer buffer;
         http::request<http::string_body> req;
         http::read(socket, buffer, req);
-
-        // Step 5: Process request and generate response
         http::response<http::string_body> res{http::status::internal_server_error, req.version()};
         handle_request(req, res);
-
-        // Step 6: Send response
         http::write(socket, res);
-
-        // Step 7: Gracefully close the socket
         socket.shutdown(tcp::socket::shutdown_send);
     }
 
