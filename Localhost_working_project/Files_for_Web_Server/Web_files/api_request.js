@@ -1,10 +1,7 @@
 let check = document.getElementById('check_button_pincode') ;
 check.addEventListener('click' , () =>{
-    // console.log("Hello World");
     let pin_value = document.getElementById('pincode_check_id_1').value ;
-    // console.log(pin_value) ;
-
-    const apiUrl = 'http://localhost:8080/api/data';
+    const apiUrl = 'http://34.100.168.215:8080/api/data';
     const dataToSend = pin_value;
 
     fetch(apiUrl, {
@@ -21,13 +18,15 @@ check.addEventListener('click' , () =>{
         return response.text();
     })
     .then(data => {
-        // console.log('Response:', data);
         if(data != null){
             let update_info = document.getElementById('deliverable_check_output_id') ;
             update_info.innerHTML = `<p class="deliverable_check_output_para">Sellers Available for this Pincode</p>
-            <a href="http://www.google.co.in" id="seller_link" class="seller_details_button">View Sellers</a>` ;
-
+            <a href="./seller_list.html" id="seller_link" class="seller_details_button">View Sellers</a>` ;
             console.log('Response:', data);
+            let view_details = document.getElementById('seller_link');
+            view_details.addEventListener('click' , () =>{
+                window.location.href = "seller_data.html?content=" + encodeURIComponent(data);
+            }) ;
         }
         else{
             let update_info = document.getElementById('deliverable_check_output_id') ;

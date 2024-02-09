@@ -3,33 +3,47 @@
 #include <boost/beast.hpp>
 #include <boost/asio.hpp>
 #include <typeinfo>
-#include "EncodedMatrix.hpp"
+#include "../../src/EncodedMatrix.hpp"
 
-
-using namespace std ;
-namespace beast = boost::beast; 
-namespace http = beast::http; 
+using namespace std;
+namespace beast = boost::beast;
+namespace http = beast::http;
 namespace net = boost::asio;
 using tcp = net::ip::tcp;
 
 EncodedMatrix em("dataset(300_10000).txt");
 
-void handle_request(const http::request<http::string_body>& req, http::response<http::string_body>& res) {
-    if (req.method() == http::verb::get && req.target() == "/api/resource") {
+void handle_request(const http::request<http::string_body> &req, http::response<http::string_body> &res)
+{
+    if (req.method() == http::verb::get && req.target() == "/api/resource")
+    {
         // Handle GET request to /api/resource
         res.result(http::status::ok);
         res.body() = "Response received.\n";
-    } else if (req.method() == http::verb::post && req.target() == "/api/data") {
+    }
+    else if (req.method() == http::verb::post && req.target() == "/api/data")
+    {
         res.result(http::status::created);
-        vector<unsigned int> gyb = em.decode4(stoi(req.body())) ;
-        string str = "" ;
-        for(unsigned int item:gyb){
-          str = str + to_string(item) + ",";
+        vector<unsigned int> gyb = em.decode4(stoi(req.body()));
+        string str = "";
+        if (gyb[0] == -1)
+            str = "" ;
+        else if (gyb[0] == -2){
+            for(int i = 0 ; i < (em.cols) ; i ++){
+                str += to_string(i) + "," ;
+            }
         }
-        //if(req.body == )
-        
-        res.body() = "Received POST request with data: " + str + "\n";
-    } else {
+        else
+        {
+            for (unsigned int item : gyb)
+            {
+                str = str + to_string(item) + ",";
+            }
+        }
+        res.body() = str;
+    }
+    else
+    {
         // Handle invalid endpoint
         res.result(http::status::not_found);
         res.body() = "404 Not Found";
@@ -40,8 +54,9 @@ void handle_request(const http::request<http::string_body>& req, http::response<
     res.prepare_payload();
 }
 
-int main() {
-    cout << "We are inside the API code." << endl ;
+int main()
+{
+    cout << "We are inside the API code." << endl;
     // Step 1: Create the IO context
     net::io_context ioc{1};
     em.rows = 10;
@@ -49,7 +64,8 @@ int main() {
     // Step 2: Create and bind the acceptor
     tcp::acceptor acceptor{ioc, {tcp::v4(), 8080}};
 
-    while (true) {
+    while (true)
+    {
         // Step 3: Accept incoming connections
         tcp::socket socket{ioc};
         acceptor.accept(socket);
