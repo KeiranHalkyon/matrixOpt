@@ -268,7 +268,7 @@ class EncodedMatrix{
                 // now either write to file, or add to memory
                 //
                 
-                std::string innerFile = innerDir+"\\"+std::to_string(rown%1000)+"_"+chToCheck;
+                std::string innerFile = innerDir+"/"+std::to_string(rown%1000)+"_"+chToCheck;
                 std::cout << innerDir << " " << innerFile << std::endl;
                 std::filesystem::create_directory(innerDir);
                 std::ofstream outfile(innerFile,std::ios::binary | std::ios::out);
@@ -292,7 +292,7 @@ class EncodedMatrix{
         }
 
         const std::vector<signed int> decode8(int row){
-            std::string rowFileName = filename.substr(0,filename.length()-4) + "/" + std::to_string(row/1000) + "\\" + std::to_string(row%1000);
+            std::string rowFileName = filename.substr(0,filename.length()-4) + "/" + std::to_string(row/1000) + "/" + std::to_string(row%1000);
             std::ifstream rowEncF;
 
             //check if 0 or 1 is the encoded char
@@ -361,7 +361,7 @@ class EncodedMatrix{
         }
     
         const std::vector<signed int> decode4(int row){
-            std::string rowFileName = filename.substr(0,filename.length()-4) + "/" + std::to_string(row/1000) + "\\" + std::to_string(row%1000);
+            std::string rowFileName = filename.substr(0,filename.length()-4) + "/" + std::to_string(row/1000) + "/" + std::to_string(row%1000);
             std::ifstream rowEncF;
 
             //check if 0 or 1 is the encoded char
