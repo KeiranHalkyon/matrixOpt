@@ -145,8 +145,7 @@ class EncodedMatrix{
                 //
                 // now either write to file, or add to memory
                 //
-                std::string innerDir = outerDir + "\\" + std::to_string(rown/1000),
-                    innerFile = innerDir+"\\"+std::to_string(rown%1000)+"_"+chToCheck;
+                std::string innerFile = innerDir+"/"+std::to_string(rown%1000)+"_"+chToCheck;
                 std::cout << innerDir << " " << innerFile << std::endl;
                 std::filesystem::create_directory(innerDir);
                 std::ofstream outfile(innerFile,std::ios::binary | std::ios::out);
