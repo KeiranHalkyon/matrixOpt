@@ -36,8 +36,8 @@ class EncodedMatrix{
     public:
         std::string filename;
         int rows, cols;
-        std::vector<std::string> rowData;
-        std::vector<bool> isZero, isPresent;
+        //std::vector<std::string> rowData;
+        //std::vector<bool> isZero, isPresent;
         std::ifstream fileIterator;
         bool finalized;
 
@@ -55,12 +55,12 @@ class EncodedMatrix{
             this->cols = std::stoi(temp);
 
             //rowData = new 
-            isZero.resize(rows);
-            isPresent.resize(rows);
+            //isZero.resize(rows);
+            //isPresent.resize(rows);
             finalized=false;
         }
 
-        bool encode8(){
+        bool encode8(bool override=false){
             int rown=0, noz, noo, currLength;
             std::string currentRow;
             int *diffs; // store differences for each indices within a row
@@ -68,6 +68,16 @@ class EncodedMatrix{
             std::filesystem::create_directory(outerDir);
             while(rown<rows){
                 std::getline(fileIterator,currentRow);
+
+                std::string innerDir = outerDir + "/" + std::to_string(rown/1000);
+                if(!override && std::filesystem::exists(innerDir+"/"+"finalized")){
+                    currentRow = "";
+                    currentRow.shrink_to_fit();
+                    delete[] diffs;
+                    rown++;
+                    continue;
+                }
+
                 noz = boost::count(currentRow,'0');
                 noo=cols-noz;
                 char chToCheck;
@@ -82,7 +92,7 @@ class EncodedMatrix{
                 }
 
                 //count no. of 1's
-                isZero[rown] = false;
+                //isZero[rown] = false;
                 diffs = new int[currLength];
                 int prev = 0, diffIndex=0;
 
@@ -128,31 +138,7 @@ class EncodedMatrix{
                         currentRow+=ch;
                     }
 
-                    //big endian logic
-                    /* 
-                    switch(noOfBytes){
-                        case 5:ch = (now >> 28) & mask | 0x80;
-                                currentRow+=ch;
-                                assert(ch>0);
-                                //std::cout << now << " " << std::bitset<8>(ch) << std::endl;
-                        case 4:ch = (now >> 21) & mask | 0x80;
-                                currentRow+=ch;
-                                assert(ch>0);
-                                //std::cout << now << " " << std::bitset<8>(ch) << std::endl;
-                        case 3:ch = (now >> 14) & mask | 0x80;
-                                currentRow+=ch;
-                                assert(ch>0);
-                                //std::cout << now << " " << std::bitset<8>(ch) << std::endl;
-                        case 2:ch = (now >> 7) & mask | 0x80;
-                                currentRow+=ch;
-                                assert(ch>0);
-                                std::cout << now << " " << std::bitset<8>(ch) << std::endl;
-                        case 1:ch = now & mask;
-                                currentRow+=ch;
-                                assert(ch>0);
-                                //std::cout << now << " " << std::bitset<8>(ch) << std::endl;
-                    }
-                    */
+                    
                     diffIndex++;
                     //std::cin.ignore();
                 }
@@ -160,13 +146,19 @@ class EncodedMatrix{
                 // now either write to file, or add to memory
                 //
                 std::string innerDir = outerDir + "\\" + std::to_string(rown/1000),
-                    innerFile = innerDir+"\\"+std::to_string(rown%1000);
+                    innerFile = innerDir+"\\"+std::to_string(rown%1000)+"_"+chToCheck;
                 std::cout << innerDir << " " << innerFile << std::endl;
                 std::filesystem::create_directory(innerDir);
                 std::ofstream outfile(innerFile,std::ios::binary | std::ios::out);
 
                 outfile << currentRow;
                 outfile.close();
+
+                //produce finalized file if last row of the dir or dataset
+                if(rown%1000 == 999 || rown == (rows-1)){
+                    std::ofstream finalizedFile(innerDir+"/"+"finalized");
+                    finalizedFile.close();
+                }
 
                 //bookkeeping tasks to reduce memory footprint
                 currentRow = "";
@@ -177,7 +169,7 @@ class EncodedMatrix{
             return true;
         }
 
-        bool encode4(){
+        bool encode4(bool override=false){
             int rown=0, noz, noo, currLength;
             std::string currentRow;
             int *diffs; // store differences for each indices within a row
@@ -185,6 +177,16 @@ class EncodedMatrix{
             std::filesystem::create_directory(outerDir);
             while(rown<rows){
                 std::getline(fileIterator,currentRow);
+
+                std::string innerDir = outerDir + "/" + std::to_string(rown/1000);
+                if(!override && std::filesystem::exists(innerDir+"/"+"finalized")){
+                    currentRow = "";
+                    currentRow.shrink_to_fit();
+                    delete[] diffs;
+                    rown++;
+                    continue;
+                }
+
                 noz = boost::count(currentRow,'0');
                 noo=cols-noz;
                 char chToCheck;
@@ -199,7 +201,7 @@ class EncodedMatrix{
                 }
 
                 //count no. of 1's
-                isZero[rown] = false;
+                //isZero[rown] = false;
                 diffs = new int[currLength];
                 int prev = 0, diffIndex=0;
 
@@ -216,7 +218,7 @@ class EncodedMatrix{
                     prev = currIndex;
                 }
                 
-                std::cout << prev << std::endl;
+                //std::cout << prev << std::endl;
                 /*
                 std::cout << rown << "th diffs" << std::endl;
                 for(int i=0;i<100;i++)
@@ -266,14 +268,20 @@ class EncodedMatrix{
                 //
                 // now either write to file, or add to memory
                 //
-                std::string innerDir = outerDir + "\\" + std::to_string(rown/1000),
-                    innerFile = innerDir+"\\"+std::to_string(rown%1000);
+                
+                std::string innerFile = innerDir+"\\"+std::to_string(rown%1000)+"_"+chToCheck;
                 std::cout << innerDir << " " << innerFile << std::endl;
                 std::filesystem::create_directory(innerDir);
                 std::ofstream outfile(innerFile,std::ios::binary | std::ios::out);
 
                 outfile << currentRow;
                 outfile.close();
+
+                //produce finalized file if last row of the dir or dataset
+                if(rown%1000 == 999 || rown == (rows-1)){
+                    std::ofstream finalizedFile(innerDir+"/"+"finalized");
+                    finalizedFile.close();
+                }
 
                 //bookkeeping tasks to reduce memory footprint
                 currentRow = "";
@@ -284,78 +292,97 @@ class EncodedMatrix{
             return true;
         }
 
-        bool decode8(int row){
-            std::string rowFileName = filename.substr(0,filename.length()-4) + "\\" + std::to_string(row/1000) + "\\" + std::to_string(row%1000);
-            std::ifstream rowEncF(rowFileName, std::ios::binary);
-            skipBOM(rowEncF);
+        const std::vector<signed int> decode8(int row){
+            std::string rowFileName = filename.substr(0,filename.length()-4) + "/" + std::to_string(row/1000) + "\\" + std::to_string(row%1000);
+            std::ifstream rowEncF;
 
-            //std::string encodedRow;
-            //std::getline(rowEncF,encodedRow,'\0');
+            //check if 0 or 1 is the encoded char
+            char encodedChar;
 
-            /*
-            FILE *rowEncFile = fopen(rowFileName.c_str(), "rb");
-            if( rowEncFile == nullptr){
-                perror("Error opening file");
-                return 0;
+            if(std::filesystem::exists(rowFileName+"_1")){
+                encodedChar = '1';
+                rowFileName += "_1";
+                rowEncF = std::ifstream(rowFileName, std::ios::binary);
             }
-            */
-
-            //skipBOMfp(rowEncFile);
+            else{
+                encodedChar = '0';
+                rowFileName += "_0";
+                rowEncF = std::ifstream(rowFileName, std::ios::binary);
+            }
 
             int byteNo = 0;
             int prevSum = -1;
             unsigned int buffer = 0;
-            std::vector<unsigned int> indices;
+            std::vector<signed int> indices;
 
             //std::cout <<"Encoded string length : "<< encodedRow.length() << std::endl;
             char currCh;
-            //rowEncF.clear();
-            //for(size_t i = 0;i<encodedRow.length();i++){
-            
-            //big endian
-            /*
-            for(size_t i = 0;(currCh = fgetc(rowEncFile)) != EOF;i++){
-                if(isLeft) buffer<<7;
-                buffer |= currCh & 0x7f;
-                if((currCh & 0x80) == 0){
-                    isLeft = false;
-                    int newValue = prevSum += buffer;
-                    if(i<200)std::cout << newValue << " ";
 
-                    indices.push_back(newValue);
-                    buffer = 0;
-                }
-                else isLeft = true;
-            }
-            */
-
-            for(size_t i = 0;rowEncF.get(currCh);i++){
+            while(rowEncF.get(currCh)){
                 buffer |= (currCh & 0x7f) << (7*byteNo);
                 if((currCh & 0x80) == 0){
-                    int newValue = prevSum += buffer;
-                    indices.push_back(newValue);
+                    int newValue = prevSum + buffer;
+                    if(encodedChar == '1')
+                        indices.push_back(newValue);
+                    else{
+                        for(int i=prevSum+1;i<newValue;i++)
+                            indices.push_back(i);
+                    }
+                    prevSum = newValue;
                     //if (i<200) std::cout << newValue << " ";
                     buffer = byteNo = 0;
                 }
                 else byteNo++;
             }
 
+            //add in remaining 0s if encoded char is 0
+
+            if(encodedChar == '1' && indices.size()==0){
+                //-1 indicates no 1s are present
+                indices.push_back(-1);
+            }
+            else if(encodedChar == '0'){
+                if(indices.size()==0){
+                //-2 indicates all are 1s
+                indices.push_back(-2);
+                }
+                else if(prevSum<(cols-1)){
+                    for(int i = prevSum+1 ; i<cols; i++)
+                        indices.push_back(i);
+                }
+            }
 
             indices.shrink_to_fit();
             //std::cout << "\n" << indices.back() << std::endl;
+            /*
             for(int i=0;i<100;i++)
                     std::cout << indices[i] << " ";
-            return true;
+            */
+            return indices;
         }
     
-        const std::vector<unsigned int> decode4(int row){
-            std::string rowFileName = filename.substr(0,filename.length()-4) + "\\" + std::to_string(row/1000) + "\\" + std::to_string(row%1000);
-            std::ifstream rowEncF(rowFileName, std::ios::binary);
+        const std::vector<signed int> decode4(int row){
+            std::string rowFileName = filename.substr(0,filename.length()-4) + "/" + std::to_string(row/1000) + "\\" + std::to_string(row%1000);
+            std::ifstream rowEncF;
+
+            //check if 0 or 1 is the encoded char
+            char encodedChar;
+
+            if(std::filesystem::exists(rowFileName+"_1")){
+                encodedChar = '1';
+                rowFileName += "_1";
+                rowEncF = std::ifstream(rowFileName, std::ios::binary);
+            }
+            else{
+                encodedChar = '0';
+                rowFileName += "_0";
+                rowEncF = std::ifstream(rowFileName, std::ios::binary);
+            }
 
             int bit4No = 0;
             int prevSum = -1;
             unsigned int buffer = 0;
-            std::vector<unsigned int> indices;
+            std::vector<signed int> indices;
 
             //store current character/buffer
             char currCh;
@@ -364,7 +391,7 @@ class EncodedMatrix{
 
             size_t i=0;
             while(true){
-                unsigned int mask, currValue;
+                signed int mask, currValue;
                 if(currChUsed){
                     //if EOF has triggered
                     if(!rowEncF.get(currCh))
@@ -385,8 +412,14 @@ class EncodedMatrix{
                     //detect last empty half i.e. 0010 0000, where the last half was unfilled
                     if(buffer == 0)
                         continue;
-                    int newValue = prevSum += buffer;
-                    indices.push_back(newValue);
+                    int newValue = prevSum + buffer;
+                    if(encodedChar == '1')
+                        indices.push_back(newValue);
+                    else{
+                        for(int i=prevSum+1;i<newValue;i++)
+                            indices.push_back(i);
+                    }
+                    prevSum = newValue;
                     //if (i<200) std::cout << newValue << " ";
                     buffer = bit4No = 0;
                     
@@ -394,6 +427,22 @@ class EncodedMatrix{
                 else bit4No++;
             }
 
+            //add in remaining 0s if encoded char is 0
+
+            if(encodedChar == '1' && indices.size()==0){
+                //-1 indicates no 1s are present
+                indices.push_back(-1);
+            }
+            else if(encodedChar == '0'){
+                if(indices.size()==0){
+                //-2 indicates all are 1s
+                indices.push_back(-2);
+                }
+                else if(prevSum<(cols-1)){
+                    for(int i = prevSum+1 ; i<cols; i++)
+                        indices.push_back(i);
+                }
+            }
 
             indices.shrink_to_fit();
             //std::cout << "\n" << indices.back() << std::endl;
