@@ -28,7 +28,7 @@ check.addEventListener('click' , () =>{
             if(to_integer != -1){
             let update_info = document.getElementById('deliverable_check_output_id') ;
             update_info.innerHTML = `<p class="deliverable_check_output_para">Sellers Available for this Pincode</p>
-            <a href="./seller_list.html" id="seller_link" class="seller_details_button">View Sellers</a>` ;
+            <a href="#" id="seller_link" class="seller_details_button">View Sellers</a>` ;
             console.log('Response:', data);
            // alert("The List of Sellers are: " + data);
             let view_details = document.getElementById('seller_link');
