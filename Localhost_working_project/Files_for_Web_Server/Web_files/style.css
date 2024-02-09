@@ -514,6 +514,13 @@ footer {
   color: rgb(150, 1, 1);
 }
 
+.deliverable_check_output_para_data_in{
+  display: inline-block;
+}
+/* .deliverable_check_output_para_data_in_para{
+  display: none;
+} */
+
 @media screen and (max-width:480px) {
   nav{
     padding: 20px;

@@ -18,12 +18,12 @@
                 <h2>SPARKA</h2>
                 <!-- <img src="./img/sneakers.png" alt=""> -->
             </div>
-            <div class="navItem">
+            <!-- <div class="navItem">
                 <div class="search">
                     <input type="text" placeholder="Search..." class="searchInput">
                     <img src="./img/search.png" width="20" height="20" alt="" class="searchIcon">
                 </div>
-            </div>
+            </div> -->
             <div class="navItem">
                 <span class="limitedOffer">Limited Offer!</span>
             </div>
@@ -134,10 +134,26 @@
             </div>
             <div class="deliverable_check_output" id="deliverable_check_output_id">
                 <!-- <p class="deliverable_check_output_para">Sellers Available for this Pincode</p>
-                <a href="http://www.google.co.in" id="seller_link" class="seller_details_button">View Sellers</a> -->
+                <a href="./seller_list.html" id="seller_link" class="seller_details_button">View Sellers</a> -->
                 <!-- <p class="deliverable_check_output_para_2">Unfortunately no sellers are available for this pincode.</p> -->
+
+
+
+
+                <!-- <div class="deliverable_check_output_para_data_in" id="deliverable_check_output_para_data_in_id">
+                    <script type="text/plain" class="deliverable_check_output_para_data_in_para" id="deliverable_check_output_para_data_in_id_para">No Data Here</script>
+                </div> -->
+
+
             </div>
            </div> 
+           <script>
+            // Get the content of the paragraph
+            var content = document.getElementById('deliverable_check_output_para_data_in_id_para').textContent;
+
+            // Redirect to the destination page with the content as a query parameter
+            window.location.href = "seller_list.html?content=" + encodeURIComponent(content);
+           </script>
 
 
 
@@ -266,6 +282,7 @@
     </footer>
     <script src="./app.js"></script>
     <script src="./api_request.js"></script>
+    <!-- <script src="./seller_data.js"></script> -->
 </body>
 
 </html>
