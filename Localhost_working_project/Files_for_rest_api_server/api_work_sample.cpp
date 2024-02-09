@@ -4,6 +4,7 @@
 #include <boost/asio.hpp>
 #include <typeinfo>
 #include "../../src/EncodedMatrix.hpp"
+#include <sstream>
 
 using namespace std;
 namespace beast = boost::beast;
@@ -29,16 +30,22 @@ void handle_request(const http::request<http::string_body> &req, http::response<
         if (gyb[0] == -1)
             str = "" ;
         else if (gyb[0] == -2){
+            stringstream ss ;
             for(int i = 0 ; i < (em.cols) ; i ++){
-                str += to_string(i) + "," ;
+                //str += to_string(i) + "," ;
+            	ss << i << "," ;
             }
+            str = ss.str() ;
         }
         else
         {
+            stringstream ss ;
             for (int item : gyb)
             {
-                str = str + to_string(item) + ",";
+                //str = str + to_string(item) + ",";
+            	ss << item << "," ;
             }
+            str = ss.str() ;
         }
         res.body() = str;
     }

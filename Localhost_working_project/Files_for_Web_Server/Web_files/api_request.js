@@ -23,15 +23,17 @@ check.addEventListener('click' , () =>{
             update_info.innerHTML = `<p class="deliverable_check_output_para">Sellers Available for this Pincode</p>
             <a href="./seller_list.html" id="seller_link" class="seller_details_button">View Sellers</a>` ;
             console.log('Response:', data);
+           // alert("The List of Sellers are: " + data);
             let view_details = document.getElementById('seller_link');
             view_details.addEventListener('click' , () =>{
-                window.location.href = "seller_data.html?content=" + encodeURIComponent(data);
+               // window.location.href = "seller_data.html?content=" + encodeURIComponent(data);
+               alert("The List of Sellers are: " + data);
             }) ;
         }
         else{
             let update_info = document.getElementById('deliverable_check_output_id') ;
             update_info.innerHTML = `<p class="deliverable_check_output_para_2">Unfortunately no sellers are available for this pincode.</p>` ;
-            
+
             console.log("Null Output") ;
         }
     })
@@ -41,6 +43,7 @@ check.addEventListener('click' , () =>{
 
 
 });
+
 
 // function postData() {
 //     const apiUrl = 'http://localhost:8080/api/data';
