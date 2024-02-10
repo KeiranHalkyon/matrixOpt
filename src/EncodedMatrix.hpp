@@ -73,7 +73,7 @@ class EncodedMatrix{
                 if(!override && std::filesystem::exists(innerDir+"/"+"finalized")){
                     currentRow = "";
                     currentRow.shrink_to_fit();
-                    delete[] diffs;
+                    //delete[] diffs;
                     rown++;
                     continue;
                 }
@@ -181,7 +181,7 @@ class EncodedMatrix{
                 if(!override && std::filesystem::exists(innerDir+"/"+"finalized")){
                     currentRow = "";
                     currentRow.shrink_to_fit();
-                    delete[] diffs;
+                    //delete[] diffs;
                     rown++;
                     continue;
                 }
@@ -269,7 +269,7 @@ class EncodedMatrix{
                 //
                 
                 std::string innerFile = innerDir+"/"+std::to_string(rown%1000)+"_"+chToCheck;
-                std::cout << innerDir << " " << innerFile << std::endl;
+              //  std::cout << innerDir << " " << innerFile << std::endl;
                 std::filesystem::create_directory(innerDir);
                 std::ofstream outfile(innerFile,std::ios::binary | std::ios::out);
 
