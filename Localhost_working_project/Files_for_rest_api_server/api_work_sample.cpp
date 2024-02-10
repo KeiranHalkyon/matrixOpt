@@ -126,16 +126,23 @@ int main()
     tcp::acceptor acceptor{ioc, {tcp::v4(), 8080}};
 
     while (true)
-    {
-        tcp::socket socket{ioc};
-        acceptor.accept(socket);
-        beast::flat_buffer buffer;
-        http::request<http::string_body> req;
-        http::read(socket, buffer, req);
-        http::response<http::string_body> res{http::status::internal_server_error, req.version()};
-        handle_request(req, res);
-        http::write(socket, res);
-        socket.shutdown(tcp::socket::shutdown_send);
+    {   
+        try{
+            tcp::socket socket{ioc};
+            acceptor.accept(socket);
+    
+            beast::flat_buffer buffer;
+            http::request<http::string_body> req;
+            http::read(socket, buffer, req);
+            http::response<http::string_body> res{http::status::internal_server_error, req.version()};
+            handle_request(req, res);
+            http::write(socket, res);
+            socket.shutdown(tcp::socket::shutdown_send);
+        }
+        catch(...){
+            std::exception_ptr p = std::current_exception();
+            std::clog <<(p ? p.__cxa_exception_type()->name() : "null") << std::endl;
+        }
     }
 
     return 0;
