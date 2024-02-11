@@ -35,7 +35,8 @@ void handle_request(const http::request<http::string_body> &req, http::response<
     	auto it = pincodeMap.find(stoi(inputPincode));
     	if (it != pincodeMap.end()) {
         //std::cout << "Pincode " << inputPincode << " found at line number: " << it->second << std::endl;
-    	vector<int> gyb = em.decode4(stoi(req.body()));
+    	//vector<int> gyb = em.decode4(stoi(req.body()));
+        vector<int> gyb = em.decode4(it->second);
         string str = "";
         if (gyb[0] == -1)
             str = "" ;
